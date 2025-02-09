@@ -35,18 +35,20 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(lcd-serial lcd-serial.c )
+add_executable(lcd-serial lcd-serial.c lib/ssd1306.c)
 
 pico_set_program_name(lcd-serial "lcd-serial")
 pico_set_program_version(lcd-serial "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(lcd-serial 0)
-pico_enable_stdio_usb(lcd-serial 0)
+pico_enable_stdio_usb(lcd-serial 1)
 
 # Add the standard library to the build
 target_link_libraries(lcd-serial
-        pico_stdlib)
+        hardware_pio
+        pico_stdlib
+        pico_bootrom)
 
 # Add the standard include files to the build
 target_include_directories(lcd-serial PRIVATE
@@ -56,8 +58,9 @@ target_include_directories(lcd-serial PRIVATE
 # Add any user requested libraries
 target_link_libraries(lcd-serial 
         hardware_i2c
-        
         )
+
+pico_generate_pio_header(lcd-serial ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 
 pico_add_extra_outputs(lcd-serial)
 
