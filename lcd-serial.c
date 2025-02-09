@@ -35,12 +35,14 @@ int unused_sm = 0;
 ssd1306_t ssd;
 volatile bool led_green_state = false;
 volatile bool led_blue_state  = false;
-static char status_led[32]  = "Leds desligados";
-static char caractere[32]   = "Caractere: (nada)";
+static char status_led_azul[32]  = "Led azul OFF";
+static char status_led_verde[32]  = "Led verde OFF";
+static char caractere[32]   = "Caractere";
 
 void initialize_config();
 void gpio_irq_handler(uint gpio, uint32_t events);
 void update_display(void);
+void apaga_matriz(void);
 
 // mapeamento da ordem dos leds da matriz de led
 static const uint8_t mapeamento_led[5][5] = {
@@ -142,8 +144,13 @@ void initialize_config()
     gpio_pull_up(I2C_SDA);
     gpio_pull_up(I2C_SCL);
 
-    //inicializa display
+    //inicializa display e configura
     ssd1306_init(&ssd, WIDTH, HEIGHT, false, OLED_ADDR, I2C_PORT);
+    ssd1306_fill(&ssd, false);
+    ssd1306_config(&ssd); 
+    ssd1306_send_data(&ssd);
+
+    // Limpa o display. O display inicia com todos os pixels apagados.
     ssd1306_fill(&ssd, false);
     ssd1306_send_data(&ssd);
 
@@ -153,6 +160,7 @@ void initialize_config()
     unused_sm = pio_claim_unused_sm(pio, true);
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, unused_sm, offset, WS2812_PINO, 800000, false); // configura o ws2812
+    apaga_matriz();
     
 }
 
@@ -245,19 +253,22 @@ void gpio_irq_handler(uint gpio, uint32_t events) // callback da interrupção
 
 //atualiza o display 
 void update_display(void) {
-    if (gpio_get(LED_AZUL) && gpio_get(LED_VERDE)) {
-        strcpy(status_led, "Verde e azul ON");
-    } else if (gpio_get(LED_VERDE)) {
-        strcpy(status_led, "Led verde ON");
-    } else if (gpio_get(LED_AZUL)) {
-        strcpy(status_led, "Led azul ON");
+    if (gpio_get(LED_VERDE)) {
+        strcpy(status_led_verde, "Led verde ON");
     } else {
-        strcpy(status_led, "Verde e Azul OFF");
+        strcpy(status_led_verde, "Led verde OFF");
+    }
+    
+    if (gpio_get(LED_AZUL)) {
+        strcpy(status_led_azul, "Led azul ON");
+    } else {
+        strcpy(status_led_azul, "Led azul OFF");
     }
 
     ssd1306_fill(&ssd, false); //limpa buffer
-    ssd1306_draw_string(&ssd, status_led, 0, 0);
-    ssd1306_draw_string(&ssd, caractere, 0, 20);
+    ssd1306_draw_string(&ssd, status_led_azul, 0, 0);
+    ssd1306_draw_string(&ssd, status_led_verde, 0, 20);
+    ssd1306_draw_string(&ssd, caractere, 0, 40);
     ssd1306_send_data(&ssd); //envia
 }
 
