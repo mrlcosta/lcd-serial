@@ -237,6 +237,7 @@ void gpio_irq_handler(uint gpio, uint32_t events) // callback da interrupção
             {
                gpio_put(LED_VERDE, !gpio_get(LED_VERDE));
                printf("LED verde: %s\n", gpio_get(LED_VERDE) ? "aceso" : "apagado");
+               update_display();
             }
         }
 
@@ -246,6 +247,7 @@ void gpio_irq_handler(uint gpio, uint32_t events) // callback da interrupção
             {
                 gpio_put(LED_AZUL, !gpio_get(LED_AZUL));
                 printf("LED azul: %s\n", gpio_get(LED_AZUL) ? "aceso" : "apagado");
+                update_display();
             }
         }
     }
